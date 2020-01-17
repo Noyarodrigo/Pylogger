@@ -2,7 +2,9 @@
 
 def writter(q):
     #agregar lock para el lector
-    print(q.get())
+    print('Writter Thread started...')
+    while True:
+        print(q.get())
     #liberar
 
 def reader():
@@ -11,6 +13,6 @@ def reader():
     #release
     pass
 
-def prepare():
-    #some work here, it depends on how the string from the esp8266 gonna be
-    pass
+def prepare(data,q):
+    split = str(data).split('/')
+    q.put(split[1:4]) 
