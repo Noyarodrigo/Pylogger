@@ -1,4 +1,4 @@
-#this submodule contains the reader/writter/prepare functions for main.py (server)
+#aathis submodule contains the reader/writter/prepare functions for main.py (server)
 from datetime import datetime
 import multiprocessing
 import re
@@ -11,14 +11,24 @@ count = manager.Value('i',0)
 humidity = manager.list() 
 humidity = [0]*3
 
-def writter(q,lk_file):
+def writer(q,qa,lk_file):
+    buff = [] #this would be a buffer to save a certain amounts of lectures until you open the file and write, it's a performance test
+    read = []
+    limit = 35 #this limit should be taken from the conf file
     while True:
         if not q.empty():
-            lk_file.acquire()
-            with open ('lectures.csv', 'a') as lectures:
-                lectures.write(str(q.get())+'\n')
-                print('writting in file: ',q.get())
-            lk_file.release()
+            read = q.get()
+            if float(read[1]) >= limit: #alarm
+                qa.put(read)
+            buff.append(read)
+            if len(buff) >= 10: #block and wrtie the file
+                lk_file.acquire()
+                with open ('lectures.csv', 'a') as lectures:
+                    print('-.-.-writing in file-.-.-')
+                    for el in buff:
+                       lectures.write(str(el)+'\n')
+                lk_file.release()
+                buff = []
 
 def prepare(data,q):
     timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -28,6 +38,18 @@ def prepare(data,q):
     splited.append(timestamp)
     q.put(splited)
    
+def average():
+    avg_temperature = []
+    avg_humidity = []
+    for i in range(len(temperature)):
+        avg_temperature.append(round(temperature[i]/count.value,2))
+        avg_humidity.append(round(humidity[i]/count.value,2))
+
+    print('--------------------------------------')
+    print('Average Temp:{}\nAverage Hum:{}\n--------------------------------------'.format(avg_temperature,avg_humidity))
+    
+    return avg_temperature,avg_humidity;
+
 def reader_full(lk_file):
     process_me = []
 
@@ -44,8 +66,11 @@ def reader_full(lk_file):
     #i'm using pool async because it has a call back function that allows to write just 1 time
     #the var so just a lock-release is requiered, i will be adding the values to the id position
     #in the global list
+
     pool.close()
     pool.join()
+    
+    print('--------------------------------------')
     print('Temperatures:',temperature)
     print('Humidities:',humidity)
     print('Lectures:',count.value)

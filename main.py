@@ -18,10 +18,11 @@ class ServerHandler(socketserver.BaseRequestHandler):
 
 if __name__ == "__main__":
 
-    q = multiprocessing.Queue() #AGREGAR PRIORIDADES
+    q = multiprocessing.Queue() 
+    qa = multiprocessing.Queue() #queue for the alert process
     lk_file = multiprocessing.Lock() #file concurrency
 
-    startup(q,lk_file)
+    startup(q,qa,lk_file)
     servidor = TcpThreads(address,ServerHandler) #uses the TcpThread class then handler class
-    run(servidor,lk_file)
+    run(servidor)
 
