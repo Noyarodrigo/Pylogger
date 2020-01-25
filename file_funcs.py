@@ -18,8 +18,17 @@ def writer(q,qa,lk_file):
     while True:
         if not q.empty():
             read = q.get()
+
+            temperature[int(read[0])-1] = temperature[int(read[0])-1] + float(read[1])
+            humidity[int(read[0])-1] = humidity[int(read[0])-1] + float(read[2])
+            count.value += 1
+
+            #borrar esto
+            rest, resh = realtime()
+            print (rest, resh)
             if float(read[1]) >= limit: #alarm
                 qa.put(read)
+            
             buff.append(read)
             if len(buff) >= 10: #block and wrtie the file
                 lk_file.acquire()
@@ -29,6 +38,16 @@ def writer(q,qa,lk_file):
                        lectures.write(str(el)+'\n')
                 lk_file.release()
                 buff = []
+
+def realtime():
+    avg_temperature = []
+    avg_humidity = []
+
+    for i in range(len(temperature)):
+        avg_temperature.append(round(temperature[i]/count.value,2))
+        avg_humidity.append(round(humidity[i]/count.value,2))
+
+    return avg_temperature,avg_humidity;
 
 def prepare(data,q):
     timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
