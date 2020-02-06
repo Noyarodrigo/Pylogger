@@ -39,13 +39,12 @@ def writer(q,qa,lk_file):
                 lk_file.release()
                 buff = []
 
-def realtime():
-    avg_temperature = []
-    avg_humidity = []
+def realtime(sensor_id):
+    avg_temperature = 0
+    avg_humidity = 0
 
-    for i in range(len(temperature)):
-        avg_temperature.append(round(temperature[i]/count.value,2))
-        avg_humidity.append(round(humidity[i]/count.value,2))
+    avg_temperature = round(temperature[int(sensor_id)-1]/count.value,2)
+    avg_humidity = round(humidity[int(sensor_id)-1]/count.value,2)
 
     return avg_temperature,avg_humidity;
 
