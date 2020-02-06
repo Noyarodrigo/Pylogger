@@ -3,6 +3,7 @@ import queue as queue
 import threading
 import file_funcs as ff
 from startup import *
+import webpage as wp
 
 class TcpThreads(socketserver.ThreadingMixIn, socketserver.TCPServer):
     socketserver.TCPServer.allow_reuse_address = True #reuse address when the server is restarted
@@ -13,13 +14,14 @@ class ServerHandler(socketserver.BaseRequestHandler):
         print("New connection from: ",self.client_address[0])
     def handle(self):
         self.data = self.request.recv(1024)
+        #detects whether a sensor is connecting or a browser
         if 'User' in str(self.data):
-            self.request.sendall(str.encode("HTTP/1.0 200 OK\n",'iso-8859-1'))
-            self.request.sendall(str.encode('Content-Type: text/html\n', 'iso-8859-1'))
-            self.request.send(str.encode('\r\n'))
-            with open ('index.html','r') as index:
-                for l in index:
-                    self.request.sendall(str.encode(""+l+"", 'iso-8859-1'))
+            #if user is present in the request then is a browser, generate and send the html
+            #if there is an id in the request plot it and return it, else return the form
+            if (str(self.data).find('id=')) != -1:
+                wp.showplot(self) 
+            else:
+                wp.generate_interface(self)
         else:
             #prepare the string to add to the queue
             ff.prepare(self.data,q)
