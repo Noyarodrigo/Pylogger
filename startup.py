@@ -3,21 +3,24 @@ import multiprocessing
 import file_funcs as ff
 import alert as al
 import os
+import sys
 
-address = ("192.168.1.51",8080) #(ip, port)
+m = multiprocessing.Manager()
+configuration = m.list() #manager is for global shared list (or other objects) between processes
 
 def startup(q,qa,lk_file):
-    if not os.path.exists('lectures.csv'): #check if the file exists and create if it doesn't  
-        os.mknod('lectures.csv')
+    if not os.path.exists(configuration[2]): #check if the file exists and create if it doesn't  
+        os.mknod(configuration[2])
     try:
         ff.reader_full(lk_file) #read the lectures and prepare for averages
         ff.average()
         w = multiprocessing.Process(target=ff.writer,  args=(q,qa,lk_file,)) #cretes and start writter process
-        alert = multiprocessing.Process(target=al.sendmail, args=(qa,)) #creates and start the alert process
         w.start()
-        alert.start()
         print('Writter Process ... OK')
-        print('Alert Process ... OK')
+        if configuration[5] == '1':
+            alert = multiprocessing.Process(target=al.sendmail, args=(qa, configuration,)) #creates and start the alert process
+            alert.start()
+            print('Alert Process ... OK')
 
     except:
         print('Writter Process ... Failed')
@@ -30,4 +33,16 @@ def run(servidor):
     except KeyboardInterrupt:
         servidor.shutdown()
         servidor.socket.close()
+
+def read_conf():
+    try:
+        with open ('config.txt', 'r') as conf_file:
+            for line in conf_file:
+                if line[0] != '-':
+                    configuration.append(line.split('=')[1].strip('\n'))
+
+    except:
+        print('Unable to load the configuration file, shuting down the server')
+        sys.exit() #terminate program with multiprocessing
+        
 
