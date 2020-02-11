@@ -15,7 +15,7 @@ def generate_interface(self):
 
 def showplot(self):
     sensor_id = str(self.data).split('/')[1].strip('index?id= HTTP')
-    
+    sensor_id = str(int(sensor_id)-1)
     temp,hum = ff.realtime(sensor_id)
     print(f'sensor_id:{sensor_id} temp:{temp} hum:{hum}')
     plot(temp,hum,sensor_id)

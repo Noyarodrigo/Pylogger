@@ -42,8 +42,8 @@ def realtime(sensor_id):
     avg_temperature = 0
     avg_humidity = 0
 
-    avg_temperature = round(temperature[int(sensor_id)-1]/count[sensor_id]-1,2)
-    avg_humidity = round(humidity[int(sensor_id)-1]/count[sensor_id]-1,2)
+    avg_temperature = round(temperature[int(sensor_id)-1]/count[int(sensor_id)]-1,2)
+    avg_humidity = round(humidity[int(sensor_id)-1]/count[int(sensor_id)]-1,2)
 
     return avg_temperature,avg_humidity;
 
