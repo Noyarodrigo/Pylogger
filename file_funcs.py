@@ -2,37 +2,36 @@
 from datetime import datetime
 import multiprocessing
 import re
+from startup import *
 
-
+n_of_sensors = 3
 manager = multiprocessing.Manager() 
 temperature = manager.list() #manager is for global shared list (or other objects) between processes
-temperature = [0]*3 #here would be the number of sensor you are using, it'd be taken from a config file
-count = manager.Value('i',0)
+temperature = [0]*n_of_sensors
+count = manager.list()
+count = [0]*n_of_sensors
 humidity = manager.list() 
-humidity = [0]*3
+humidity = [0]*n_of_sensors
 
 def writer(q,qa,lk_file):
     buff = [] #this would be a buffer to save a certain amounts of lectures until you open the file and write, it's a performance test
     read = []
-    limit = 35 #this limit should be taken from the conf file
+    limit = int(configuration[3]) #this limit should be taken from the conf file
     while True:
         if not q.empty():
             read = q.get()
 
             temperature[int(read[0])-1] = temperature[int(read[0])-1] + float(read[1])
             humidity[int(read[0])-1] = humidity[int(read[0])-1] + float(read[2])
-            count.value += 1
+            count[int(int(read[0])-1)] = int(count[int(int(read[0])-1)]) 
 
-            #borrar esto
-            rest, resh = realtime()
-            print (rest, resh)
             if float(read[1]) >= limit: #alarm
                 qa.put(read)
             
             buff.append(read)
-            if len(buff) >= 10: #block and wrtie the file
+            if len(buff) >= int(configuration[4]): #block and wrtie the file
                 lk_file.acquire()
-                with open ('lectures.csv', 'a') as lectures:
+                with open (configuration[2], 'a') as lectures:
                     print('-.-.-writing in file-.-.-')
                     for el in buff:
                        lectures.write(str(el)+'\n')
@@ -43,8 +42,8 @@ def realtime(sensor_id):
     avg_temperature = 0
     avg_humidity = 0
 
-    avg_temperature = round(temperature[int(sensor_id)-1]/count.value,2)
-    avg_humidity = round(humidity[int(sensor_id)-1]/count.value,2)
+    avg_temperature = round(temperature[int(sensor_id)-1]/count[int(sensor_id)]-1,2)
+    avg_humidity = round(humidity[int(sensor_id)-1]/count[int(sensor_id)]-1,2)
 
     return avg_temperature,avg_humidity;
 
@@ -60,19 +59,18 @@ def average():
     avg_temperature = []
     avg_humidity = []
     for i in range(len(temperature)):
-        avg_temperature.append(round(temperature[i]/count.value,2))
-        avg_humidity.append(round(humidity[i]/count.value,2))
+        avg_temperature.append(round(temperature[i]/(count[i]),2))
+        avg_humidity.append(round(humidity[i]/(count[i]),2))
 
     print('--------------------------------------')
     print('Average Temp:{}\nAverage Hum:{}\n--------------------------------------'.format(avg_temperature,avg_humidity))
-    
     return avg_temperature,avg_humidity;
 
 def reader_full(lk_file):
     process_me = []
 
     lk_file.acquire()
-    with open ('lectures.csv', 'r') as lectures:
+    with open (configuration[2], 'r') as lectures:
        for line in lectures:
            process_me.append(line)
     lk_file.release()
@@ -81,17 +79,13 @@ def reader_full(lk_file):
     for element in process_me:
         pool.apply_async(calculate, args=(element,), callback=finish)
 
-    #i'm using pool async because it has a call back function that allows to write just 1 time
-    #the var so just a lock-release is requiered, i will be adding the values to the id position
-    #in the global list
-
     pool.close()
     pool.join()
     
     print('--------------------------------------')
     print('Temperatures:',temperature)
     print('Humidities:',humidity)
-    print('Lectures:',count.value)
+    print('Lectures:',count)
 
 def calculate(string):
     data_per_line = []
@@ -107,6 +101,6 @@ def calculate(string):
 def finish(processed):
     temperature[processed[0]-1] = temperature[processed[0]-1] + processed[1]
     humidity[processed[0]-1] = humidity[processed[0]-1] + processed[2]
-    count.value += 1
+    count[processed[0]-1] += 1
     
 

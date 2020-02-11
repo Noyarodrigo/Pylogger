@@ -11,7 +11,8 @@ class TcpThreads(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 class ServerHandler(socketserver.BaseRequestHandler):
     def setup(self):
-        print("New connection from: ",self.client_address[0])
+        pass
+        #print("New connection from: ",self.client_address[0])
     def handle(self):
         self.data = self.request.recv(1024)
         #detects whether a sensor is connecting or a browser
@@ -28,11 +29,16 @@ class ServerHandler(socketserver.BaseRequestHandler):
 
 if __name__ == "__main__":
 
+    read_conf()
+    print('Configuration:',configuration)
+
     q = multiprocessing.Queue() 
     qa = multiprocessing.Queue() #queue for the alert process
     lk_file = multiprocessing.Lock() #file concurrency
 
     startup(q,qa,lk_file)
+
+    address = (configuration[0],int(configuration[1]))
     servidor = TcpThreads(address,ServerHandler) #uses the TcpThread class then handler class
     run(servidor)
 

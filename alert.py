@@ -1,23 +1,12 @@
 #alert process send a mail when a value goes higher than spected
 import smtplib, ssl
 
-"""def read_creds():
-    user = passw = ""
-    with open("configuration.txt", "r") as f:
-        file = f.readlines()
-        user = file[0].strip()
-        passw = file[1].strip()
-
-    return user, passw"""
-#read credentials from confg file
-
-def sendmail(qa):
+def sendmail(qa,configuration):
     port = 465
 
-    #sender, password = read_creds()
-    sender = 'pylogger.by.roi@gmail.com'
-    password = 'estaesunaclavemuysegura'
-    recieve = 'pylogger.by.roi@gmail.com'
+    sender = configuration[6] 
+    password = configuration[7]
+    recieve = configuration[8]
 
     while True:
         if not qa.empty():
