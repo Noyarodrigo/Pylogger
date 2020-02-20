@@ -6,6 +6,7 @@ import os
 import time
 
 def generate_interface(self):
+    print('Generating interface for{}'.format(self.client_address))
     self.request.sendall(str.encode("HTTP/1.1 200 OK\n",'iso-8859-1'))
     self.request.sendall(str.encode('Content-Type: text/html\n', 'iso-8859-1'))
     self.request.send(str.encode('\r\n'))
@@ -13,12 +14,15 @@ def generate_interface(self):
         for l in index:
             self.request.sendall(str.encode(""+l+"", 'iso-8859-1'))
 
-def showplot(self):
-    sensor_id = str(self.data).split('/')[1].strip('index?id= HTTP')
-    sensor_id = str(int(sensor_id)-1)
+def showplot(self,sensor_id,event_id):
     temp,hum = ff.realtime(sensor_id)
-    print(f'sensor_id:{sensor_id} temp:{temp} hum:{hum}')
-    plot(temp,hum,sensor_id)
+
+    if event_id.is_set():
+        event_id.clear()
+        plot(temp,hum,sensor_id)
+        event_id.set()
+    event_id.wait()
+
     name = 'plots/sensor'+str(sensor_id)+'.png'
 
     with open(name, 'rb') as f1:
@@ -32,8 +36,10 @@ def showplot(self):
         ] )
         self.request.sendall(HTTP_RESPONSE)
 
-
 def plot(temp,hum,i):
+
+    print(f'Ploteando: id:{i} temp:{temp} hum:{hum}')
+
     name = 'plots/sensor'+str(i)+'.png'
     if os.path.exists(name): #check if the file exists and delete it  
          os.remove(name)
