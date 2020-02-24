@@ -3,6 +3,7 @@ from datetime import datetime
 import multiprocessing
 import re
 from startup import *
+from tasks import *
 
 def initialize(nof):
     manager = multiprocessing.Manager() 
@@ -29,8 +30,9 @@ def writer(q,qa):
             count[int(int(read[0])-1)] = int(count[int(int(read[0])-1)]) 
 
             if float(read[1]) >= limit: #alarm
-                qa.put(read)
-            
+                print('--Sending Alert--')
+                send_email.delay(configuration[6],configuration[7],configuration[8],read)
+
             buff.append(read)
             if len(buff) >= int(configuration[4]): #block and wrtie the file
                 with open (configuration[2], 'a') as lectures:
