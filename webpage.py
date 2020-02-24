@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import time
+from datetime import datetime
 
 def generate_interface(self):
     print('Generating interface for{}'.format(self.client_address))
@@ -14,16 +15,18 @@ def generate_interface(self):
         for l in index:
             self.request.sendall(str.encode(""+l+"", 'iso-8859-1'))
 
-def showplot(self,sensor_id,event_id):
+def showplot(self,sensor_id,event_id,sampling_time):
     temp,hum = ff.realtime(sensor_id)
+
+    name = 'plots/sensor'+str(sensor_id)+'.png'
 
     if event_id.is_set():
         event_id.clear()
-        plot(temp,hum,sensor_id)
+        if get_date(name,sampling_time):
+            plot(temp,hum,sensor_id)
         event_id.set()
     event_id.wait()
 
-    name = 'plots/sensor'+str(sensor_id)+'.png'
 
     with open(name, 'rb') as f1:
         data = f1.read()
@@ -54,3 +57,11 @@ def plot(temp,hum,i):
     plt.savefig(name)
     plt.cla()
     plt.close(fig)
+
+def get_date(name,sampling_time):
+    time_now = datetime.now().strftime("%H:%M:%S").split(':')
+    file_time = time.ctime(os.path.getctime(name)).split()[3].split(':')
+    delta_time = ((int(time_now[0])*60)+int(time_now[1])+(int(time_now[2])/60))-((int(file_time[0])*60)+int(file_time[1])+(int(file_time[2])/60))
+    if delta_time >= int(sampling_time) or delta_time<0:
+        return True
+    return False

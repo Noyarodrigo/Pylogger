@@ -23,7 +23,7 @@ class ServerHandler(socketserver.BaseRequestHandler):
                 sensor_id = str(self.data).split('/')[1].strip('index?id= http HTTP')
                 sensor_id = int(sensor_id)-1
                 try:
-                    wp.showplot(self,sensor_id,events[sensor_id]) 
+                    wp.showplot(self,sensor_id,events[sensor_id],configuration[10]) 
                 except:
                     print(f'Error plotting a sensor')
             else:
@@ -49,6 +49,7 @@ if __name__ == "__main__":
     ff.initialize(int(configuration[9]))
     
     events = []
+
     for i in range(int(configuration[9])):
         events.append(multiprocessing.Event())
         events[i].set()

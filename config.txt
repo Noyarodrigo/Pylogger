@@ -15,3 +15,5 @@ password=estaesunaclavemuysegura
 reciever=pylogger.by.roi@gmail.com
 -number of sensors
 n_of_sensors=3
+-sampling time (in min)
+s_t=2
