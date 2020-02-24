@@ -4,16 +4,19 @@ import multiprocessing
 import re
 from startup import *
 
-n_of_sensors = 3
-manager = multiprocessing.Manager() 
-temperature = manager.list() #manager is for global shared list (or other objects) between processes
-temperature = [0]*n_of_sensors
-count = manager.list()
-count = [0]*n_of_sensors
-humidity = manager.list() 
-humidity = [0]*n_of_sensors
+def initialize(nof):
+    manager = multiprocessing.Manager() 
+    global temperature 
+    temperature = manager.list() #manager is for global shared list (or other objects) between processes
+    temperature = [0]*nof
+    global count
+    count = manager.list()
+    count = [0]*nof
+    global humidity
+    humidity = manager.list() 
+    humidity = [0]*nof
 
-def writer(q,qa,lk_file):
+def writer(q,qa):
     buff = [] #this would be a buffer to save a certain amounts of lectures until you open the file and write, it's a performance test
     read = []
     limit = int(configuration[3]) #this limit should be taken from the conf file
@@ -30,12 +33,10 @@ def writer(q,qa,lk_file):
             
             buff.append(read)
             if len(buff) >= int(configuration[4]): #block and wrtie the file
-                lk_file.acquire()
                 with open (configuration[2], 'a') as lectures:
                     print('-.-.-writing in file-.-.-')
                     for el in buff:
                        lectures.write(str(el)+'\n')
-                lk_file.release()
                 buff = []
 
 def realtime(sensor_id):
@@ -66,14 +67,12 @@ def average():
     print('Average Temp:{}\nAverage Hum:{}\n--------------------------------------'.format(avg_temperature,avg_humidity))
     return avg_temperature,avg_humidity;
 
-def reader_full(lk_file):
+def reader_full():
     process_me = []
 
-    lk_file.acquire()
     with open (configuration[2], 'r') as lectures:
        for line in lectures:
            process_me.append(line)
-    lk_file.release()
     
     pool = multiprocessing.Pool(multiprocessing.cpu_count()*2)
     for element in process_me:

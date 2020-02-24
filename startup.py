@@ -8,13 +8,13 @@ import sys
 m = multiprocessing.Manager()
 configuration = m.list() #manager is for global shared list (or other objects) between processes
 
-def startup(q,qa,lk_file):
+def startup(q,qa):
     if not os.path.exists(configuration[2]): #check if the file exists and create if it doesn't  
         os.mknod(configuration[2])
     try:
-        ff.reader_full(lk_file) #read the lectures and prepare for averages
+        ff.reader_full() #read the lectures and prepare for averages
         ff.average()
-        w = multiprocessing.Process(target=ff.writer,  args=(q,qa,lk_file,)) #cretes and start writter process
+        w = multiprocessing.Process(target=ff.writer,  args=(q,qa,)) #cretes and start writter process
         w.start()
         print('Writter Process ... OK')
         if configuration[5] == '1':
