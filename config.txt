@@ -1,6 +1,6 @@
 -Configuration file, respect order and write after '=' w/o spaces, enjoy.
 -server conf:
-ip=192.168.1.51
+ip=192.168.43.124
 port=8080
 -write file
 file=lectures.csv

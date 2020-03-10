@@ -3,7 +3,6 @@ from datetime import datetime
 import multiprocessing
 import re
 from startup import *
-from tasks import *
 
 def initialize(nof):
     manager = multiprocessing.Manager() 
@@ -20,7 +19,7 @@ def initialize(nof):
 def writer(q,qa):
     buff = [] #this would be a buffer to save a certain amounts of lectures until you open the file and write, it's a performance test
     read = []
-    limit = int(configuration[3]) #this limit should be taken from the conf file
+    limit = int(configuration['temp']) #this limit should be taken from the conf file
     while True:
         if not q.empty():
             read = q.get()
@@ -30,12 +29,11 @@ def writer(q,qa):
             count[int(int(read[0])-1)] = int(count[int(int(read[0])-1)]) 
 
             if float(read[1]) >= limit: #alarm
-                print('--Sending Alert--')
-                send_email.delay(configuration[6],configuration[7],configuration[8],read)
-
+                qa.put(read)
+            
             buff.append(read)
-            if len(buff) >= int(configuration[4]): #block and wrtie the file
-                with open (configuration[2], 'a') as lectures:
+            if len(buff) >= int(configuration['n_of_l']): #block and wrtie the file
+                with open (configuration['file'], 'a') as lectures:
                     print('-.-.-writing in file-.-.-')
                     for el in buff:
                        lectures.write(str(el)+'\n')
@@ -72,7 +70,7 @@ def average():
 def reader_full():
     process_me = []
 
-    with open (configuration[2], 'r') as lectures:
+    with open (configuration['file'], 'r') as lectures:
        for line in lectures:
            process_me.append(line)
     

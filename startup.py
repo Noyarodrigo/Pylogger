@@ -6,18 +6,18 @@ import os
 import sys
 
 m = multiprocessing.Manager()
-configuration = m.list() #manager is for global shared list (or other objects) between processes
+configuration = m.dict() #manager is for global shared list (or other objects) between processes
 
 def startup(q,qa):
-    if not os.path.exists(configuration[2]): #check if the file exists and create if it doesn't  
-        os.mknod(configuration[2])
+    if not os.path.exists(configuration['file']): #check if the file exists and create if it doesn't  
+        os.mknod(configuration['file'])
     try:
         ff.reader_full() #read the lectures and prepare for averages
         ff.average()
         w = multiprocessing.Process(target=ff.writer,  args=(q,qa,)) #cretes and start writter process
         w.start()
         print('Writter Process ... OK')
-        if configuration[5] == '1':
+        if configuration['enable'] == '1':
             alert = multiprocessing.Process(target=al.sendmail, args=(qa, configuration,)) #creates and start the alert process
             alert.start()
             print('Alert Process ... OK')
@@ -39,7 +39,9 @@ def read_conf():
         with open ('config.txt', 'r') as conf_file:
             for line in conf_file:
                 if line[0] != '-':
-                    configuration.append(line.split('=')[1].strip('\n'))
+                    clean = line.split('=')
+                    configuration[clean[0].strip('\n')] = clean[1].strip('\n')
+
 
     except:
         print('Unable to load the configuration file, shuting down the server')

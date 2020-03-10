@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import socketserver
 import queue as queue
 import threading
@@ -23,7 +24,7 @@ class ServerHandler(socketserver.BaseRequestHandler):
                 sensor_id = str(self.data).split('/')[1].strip('index?id= http HTTP')
                 sensor_id = int(sensor_id)-1
                 try:
-                    wp.showplot(self,sensor_id,events[sensor_id],configuration[10]) 
+                    wp.showplot(self,sensor_id,events[sensor_id],configuration['s_t']) 
                 except:
                     print(f'Error plotting a sensor')
             else:
@@ -46,16 +47,19 @@ if __name__ == "__main__":
     print('Configuration:',configuration)
     q = multiprocessing.Queue() 
     qa = multiprocessing.Queue() #queue for the alert process
-    ff.initialize(int(configuration[9]))
+    ff.initialize(int(configuration['n_of_sensors']))
+    print(configuration['n_of_sensors'])
+
+    #ff.initialize(int(configuration[9]))
     
     events = []
 
-    for i in range(int(configuration[9])):
+    for i in range(int(configuration['n_of_sensors'])):
         events.append(multiprocessing.Event())
         events[i].set()
 
     startup(q,qa)
-    address = (configuration[0],int(configuration[1]))
+    address = (configuration['ip'],int(configuration['port']))
     servidor = TcpThreads(address,ServerHandler) #uses the TcpThread class then handler class
     run(servidor)
 
